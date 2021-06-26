@@ -15,7 +15,8 @@ import { withStyles } from "@material-ui/core/styles";
 import PropTypes from "prop-types";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import green from "@material-ui/core/colors/green";
-import { Link } from "react-router-dom";
+import { Link, useHistory, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const styles = (theme) => ({
   close: {
@@ -33,11 +34,13 @@ const Confirmation = (props) => {
   const [couponCode, setCouponCode] = useState("");
   const [totalPrice, setTotalPrice] = useState(0);
   const [originalTotalPrice, setOriginalTotalPrice] = useState(0);
-
+  const history = useHistory();
+  const loc = useLocation();
+  const movieId = useSelector(state=>state.movieID);
   useEffect(() => {
     const price =
-      parseInt(props.location.bookingSummary.unitPrice, 10) *
-      parseInt(props.location.bookingSummary.tickets, 10);
+      parseInt(loc.bookingSummary.unitPrice, 10) *
+      parseInt(loc.bookingSummary.tickets, 10);
     setTotalPrice(price);
     setOriginalTotalPrice(price);
   }, []);
@@ -45,11 +48,11 @@ const Confirmation = (props) => {
   const confirmBookingHandler = () => {
     let data = JSON.stringify({
       coupon_code: couponCode,
-      show_id: props.location.bookingSummary.showId,
-      tickets: [props.location.bookingSummary.tickets.toString()],
+      show_id: loc.bookingSummary.showId,
+      tickets: [loc.bookingSummary.tickets.toString()],
     });
 
-    fetch(props.baseUrl + "bookings", {
+    fetch("http://localhost:8085/api/v1/" + "bookings", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -67,7 +70,7 @@ const Confirmation = (props) => {
   };
 
   const snackBarCloseHandler = () => {
-    props.history.push("/");
+    history.push("/");
   };
 
   const couponCodeChangeHandler = (e) => {
@@ -75,7 +78,7 @@ const Confirmation = (props) => {
   };
 
   const couponApplyHandler = () => {
-    fetch(props.baseUrl + "movies/" + props.match.params.id, {
+    fetch("http://localhost:8085/api/v1/" + "movies/" + movieId, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -104,7 +107,7 @@ const Confirmation = (props) => {
 
       <div className="confirmation marginTop16">
         <div>
-          <Link to={"/bookshow/" + props.match.params.id}>
+          <Link to={"/bookshow/" + movieId}>
             <Typography className="back">&#60; Back to Book Show</Typography>
           </Link>
           <br />
@@ -122,7 +125,7 @@ const Confirmation = (props) => {
                 </div>
                 <div>
                   <Typography>
-                    {props.location.bookingSummary.location}
+                    {loc.bookingSummary.location}
                   </Typography>
                 </div>
               </div>
@@ -134,7 +137,7 @@ const Confirmation = (props) => {
                 </div>
                 <div>
                   <Typography>
-                    {props.location.bookingSummary.theatre}
+                    {loc.bookingSummary.theatre}
                   </Typography>
                 </div>
               </div>
@@ -146,7 +149,7 @@ const Confirmation = (props) => {
                 </div>
                 <div>
                   <Typography>
-                    {props.location.bookingSummary.language}
+                    {loc.bookingSummary.language}
                   </Typography>
                 </div>
               </div>
@@ -158,7 +161,7 @@ const Confirmation = (props) => {
                 </div>
                 <div>
                   <Typography>
-                    {props.location.bookingSummary.showDate}
+                    {loc.bookingSummary.showDate}
                   </Typography>
                 </div>
               </div>
@@ -170,7 +173,7 @@ const Confirmation = (props) => {
                 </div>
                 <div>
                   <Typography>
-                    {props.location.bookingSummary.tickets.toString()}
+                    {loc.bookingSummary.tickets.toString()}
                   </Typography>
                 </div>
               </div>
@@ -182,7 +185,7 @@ const Confirmation = (props) => {
                 </div>
                 <div>
                   <Typography>
-                    {props.location.bookingSummary.unitPrice}
+                    {loc.bookingSummary.unitPrice}
                   </Typography>
                 </div>
               </div>
