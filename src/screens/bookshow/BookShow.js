@@ -11,7 +11,9 @@ import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import Button from "@material-ui/core/Button";
 import FormHelperText from "@material-ui/core/FormHelperText";
-import { Link } from "react-router-dom";
+import { Link, useHistory} from "react-router-dom";
+import { useSelector } from "react-redux";
+
 
 const BookShow = (props) => {
   const [location, setLocation] = useState("");
@@ -32,11 +34,12 @@ const BookShow = (props) => {
   const [showDates, setShowDates] = useState([]);
   const [originalShows, setOriginalShows] = useState([]);
   const [showId, setShowId] = useState("");
-
+  const history = useHistory();
+  const movieId = useSelector(state=>state.movieID);
   useEffect(() => {
     let dataShows = null;
 
-    fetch(props.baseUrl + "movies/" + props.match.params.id + "/shows", {
+    fetch("http://localhost:8085/api/v1/movies/"+movieId+ "/shows", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -166,8 +169,8 @@ const BookShow = (props) => {
       return;
     }
 
-    props.history.push({
-      pathname: "/confirm/" + props.match.params.id,
+    history.push({
+      pathname: "/confirm/" + movieId,
       bookingSummary: {
         location,
         theatre,
@@ -193,10 +196,10 @@ const BookShow = (props) => {
 
   return (
     <div>
-      <Header baseUrl={props.baseUrl} />
+      <Header />
       <div className="bookShow">
         <Typography className="back">
-          <Link to={"/movie/" + props.match.params.id}>
+          <Link to={"/movie/"+ movieId} >
             &#60; Back to Movie Details
           </Link>
         </Typography>
