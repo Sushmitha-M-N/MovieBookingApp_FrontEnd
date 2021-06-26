@@ -1,0 +1,21 @@
+.sub-heading {
+    background-color: #ff7f7f;
+    width: auto;
+    padding: 8px 8px 8px 8px;
+    font-size: 1rem;
+    text-align: center;
+}
+.page-content {
+    display: flex;
+}
+.released-movie-grid-item img:hover {
+    cursor: pointer;
+}
+.movies-listing {
+    flex:76%;
+    margin: 16px;
+}
+.movies-filtering {
+    flex: 24%;
+    margin: 16px;
+}
