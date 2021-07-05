@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import GridListTileBar from '@material-ui/core/GridListTileBar';
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -47,8 +47,12 @@ export default function Home(props) {
     const movieId = useSelector(state => state.movieID);
     const classes = useStyles();
     const history = useHistory();
+    const dispatch = useDispatch();
+    const [movie, setMovie] = useState("");
     const [genres, setGenres] = useState([]);
     const [artists, setArtists] = useState([]);
+    const [releaseStartDate, setReleaseStartDate] = useState("");
+    const [releaseEndDate, setReleaseEndDate] = useState("");
     const movieClickHandler = (movieId) => {
         props.movieDetail(movieId);
         setTimeout(() => {
@@ -59,6 +63,50 @@ export default function Home(props) {
     function releaseDate(releasedate) {
         var dateobj = new Date(releasedate);
         return dateobj.toDateString();
+    }
+    const movieSelectHandler = (event) => {
+        setMovie(event.target.value)
+    }
+    const genreSelectHandler = (event) => {
+        setGenres(event.target.value)
+    }
+    const artistSelectHandler = (event) => {
+        setArtists(event.target.value)
+    }
+    const releaseDateStartHandler = (event) => {
+        setReleaseStartDate(event.target.value);
+    }
+    const releaseDateEndHandler = (event) => {
+        setReleaseEndDate(event.target.value);
+    }
+    const filterApplyHandler = () => {
+        let queryString = "?status=RELEASED";
+        if (movie !== "") {
+            queryString += "&title=" + movie;
+        }
+        if (genres.length > 0) {
+            queryString += "&genres=" + genres.toString();
+        }
+        if (artists.length > 0) {
+            queryString += "&artists=" + artists.toString();
+        }
+        if (releaseStartDate !== "") {
+            queryString += "&start_date=" + releaseStartDate;
+        }
+        if (releaseEndDate !== "") {
+            queryString += "&end_date=" + releaseEndDate;
+        }
+        let dataFilter = null;
+        let xhrFilter = new XMLHttpRequest();
+        xhrFilter.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+                let data = JSON.parse(this.responseText);
+                dispatch({ "type": "SET_RELEASED_MOVIES", payload: data.movies })
+            }
+        });
+        xhrFilter.open("GET", "http://localhost:8085/api/v1/movies" + encodeURI(queryString));
+        xhrFilter.setRequestHeader("Cache-Control", "no-cache");
+        xhrFilter.send(dataFilter)
     }
 
     return (
@@ -91,7 +139,8 @@ export default function Home(props) {
                                         subtitle={<span>Release Date:{releaseDate(tile.release_date)}</span>}
                                     />
                                 </GridListTile>
-                            ))}
+                            ))
+                            }
                         </GridList>
                     </div>
                 </div>
@@ -106,18 +155,21 @@ export default function Home(props) {
 
                             <FormControl className={classes.formControl}>
                                 <InputLabel htmlFor="movie-name">Movie Name</InputLabel>
-                                <Input id="movie-name" />
+                                <Input id="movie-name" value={movie} onChange={movieSelectHandler}/>
                             </FormControl>
                             <br />
                             <FormControl className={classes.formControl} >
                                 <InputLabel id="demo-mutiple-checkbox-label">Genres</InputLabel>
                                 <Select labelId="demo-mutiple-checkbox-label"
-                                    id="demo-mutiple-checkbox"
+                                    multiple
+                                    input={<Input id="demo-mutiple-checkbox" />}
                                     value={genres}
+                                    onChange={genreSelectHandler}
+                                    renderValue={(selected) => selected.join(", ")}
                                 >
                                     {genrelist.map((genre) => (
                                         <MenuItem key={genre.id} value={genre.genre}>
-                                            <Checkbox checked={genres.indexOf(genre.genre) > -1} />
+                                            <Checkbox checked={genres.indexOf(genre.genre) > -1}  color="primary"/>
                                             <ListItemText primary={genre.genre} />
                                         </MenuItem>
                                     ))}
@@ -127,8 +179,11 @@ export default function Home(props) {
                             <FormControl className={classes.formControl}>
                                 <InputLabel id="demo-artist-multiple-checkbox">Artists</InputLabel>
                                 <Select labelId="demo-artist-mutiple-checkbox"
-                                    id="demo-artist-mutiple-checkbox"
+                                    multiple
+                                    input={<Input id="demo-artist-mutiple-checkbox"/>}
                                     value={artists}
+                                    onChange={artistSelectHandler}
+                                    renderValue={(selected) => selected.join(", ")}
                                 >
                                     {
                                         artistlist.map((artist) => (
@@ -137,7 +192,7 @@ export default function Home(props) {
                                                 value={artist.first_name + " " + artist.last_name}
                                             >
                                                 <Checkbox
-                                                    checked={artists.indexOf(artist.first_name + " " + artist.last_name) > -1} />
+                                                    checked={artists.indexOf(artist.first_name + " " + artist.last_name) > -1} color="primary" />
                                                 <ListItemText primary={artist.first_name + " " + artist.last_name} />
                                             </MenuItem>
                                         ))
@@ -152,6 +207,7 @@ export default function Home(props) {
                                     type="date"
                                     defaultValue=""
                                     InputLabelProps={{ shrink: true }}
+                                    onChange={releaseDateStartHandler}
                                 />
                             </FormControl>
                             <br />
@@ -162,11 +218,12 @@ export default function Home(props) {
                                     type="date"
                                     defaultValue=""
                                     InputLabelProps={{ shrink: true }}
+                                    onChange={releaseDateEndHandler}
                                 />
                             </FormControl>
                             <br />
                             <FormControl className={classes.formControl}>
-                                <Button variant="contained" color="primary">
+                                <Button variant="contained" color="primary" onClick={() => filterApplyHandler()}>
                                     APPLY
                                 </Button>
                             </FormControl>
